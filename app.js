@@ -54,6 +54,11 @@ app.get('/', (req, res) => {
   res.render('index', { title: 'Inicio - Sistema de Gestión de Productos' });
 });
 
+// Health check para Render
+app.get('/healthz', (req, res) => {
+  res.status(200).send('ok');
+});
+
 // Manejo de errores 404
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Página no encontrada' });

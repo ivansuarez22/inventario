@@ -1,12 +1,26 @@
 const nano = require('nano');
 
-// Configuración de conexión a CouchDB
-const url = process.env.COUCHDB_URL || 'http://localhost:5984';
-const username = process.env.COUCHDB_USER || 'ivan';
-const password = process.env.COUCHDB_PASSWORD || '1234';
+// Configuración de conexión a CouchDB (compatible con http/https y credenciales en URL)
+const baseUrl = process.env.COUCHDB_URL || 'http://localhost:5984';
+const user = process.env.COUCHDB_USER;
+const pass = process.env.COUCHDB_PASSWORD;
 
-// Crear conexión con autenticación
-const couch = nano(`http://${username}:${password}@${url.replace('http://', '')}`);
+let couchUrl = baseUrl;
+try {
+  const u = new URL(baseUrl);
+  // Si vienen credenciales separadas y la URL no las tiene, las agregamos
+  if (user && pass && !u.username) {
+    u.username = user;
+    u.password = pass;
+  }
+  couchUrl = u.toString();
+} catch (e) {
+  // Si COUCHDB_URL no es una URL válida, usamos el valor tal cual
+  couchUrl = baseUrl;
+}
+
+// Crear conexión
+const couch = nano(couchUrl);
 
 // Bases de datos
 const DB_NAME = process.env.COUCHDB_DB_NAME || 'proyect_2';
@@ -62,7 +76,11 @@ async function initDatabases() {
     console.log('Vistas de productos configuradas');
     
   } catch (error) {
-    console.error('Error al inicializar las bases de datos:', error);
+    console.error('Error al inicializar las bases de datos:', {
+      message: error && error.message,
+      reason: error && error.reason,
+      code: error && error.code
+    });
   }
 }
 

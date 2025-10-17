@@ -135,8 +135,9 @@ exports.postForgotPassword = async (req, res) => {
     // Guardar token en la base de datos
     await User.updateResetToken(user._id, token, expires.toISOString());
     
-    // Usar la URL específica proporcionada
-    const resetUrl = `http://localhost:3000/reset-password/${token}`;
+    // Construir URL de reseteo dinámica para producción
+    const baseUrl = process.env.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const resetUrl = `${baseUrl}/reset-password/${token}`;
     
     // Mostrar el enlace directamente en la página
     req.flash('success_msg', `Utiliza este enlace para restablecer tu contraseña: <a href="${resetUrl}">${resetUrl}</a>`);
