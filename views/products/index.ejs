@@ -1,0 +1,64 @@
+<%- include('../partials/header') %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2>Listado de Productos</h2>
+    <% if (user) { %>
+      <div class="text-muted">Accediendo como: <strong><%= user.name %></strong></div>
+    <% } %>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="/products/add" class="btn btn-primary">
+      <i class="fas fa-plus"></i> Registrar Producto
+    </a>
+    <a href="/reports/inventory" class="btn btn-outline-danger">
+      <i class="fas fa-file-pdf"></i> Generar Reporte PDF
+    </a>
+    <a href="/logout" class="btn btn-outline-secondary">
+      <i class="fas fa-sign-out-alt"></i> Salir
+    </a>
+  </div>
+</div>
+
+<% if (products.length === 0) { %>
+  <div class="alert alert-info">
+    No hay productos registrados. ¡Agrega uno nuevo!
+  </div>
+<% } else { %>
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+    <% products.forEach(product => { %>
+      <div class="col">
+        <div class="card h-100 shadow-sm">
+          <% if (product.foto) { %>
+            <img src="<%= product.foto %>" class="card-img-top" alt="<%= product.nombre %>" style="height: 200px; object-fit: cover;">
+          <% } else { %>
+            <div class="bg-light text-center p-5">
+              <i class="fas fa-image fa-3x text-muted"></i>
+            </div>
+          <% } %>
+          <div class="card-body">
+            <h5 class="card-title"><%= product.nombre %></h5>
+            <h6 class="card-subtitle mb-2 text-muted">ID: <%= product.id %></h6>
+            <p class="card-text"><%= product.descripcion %></p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="badge bg-primary">$<%= product.precio.toFixed(2) %></span>
+              <span class="badge bg-secondary"><%= product.stock %> en stock</span>
+            </div>
+          </div>
+          <div class="card-footer bg-transparent">
+            <div class="d-flex justify-content-between">
+              <a href="/products/edit/<%= product._id %>" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-edit"></i> Editar
+              </a>
+              <a href="/products/delete/<%= product._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Estás seguro de eliminar este producto?')">
+                <i class="fas fa-trash"></i> Eliminar
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+<% } %>
+
+<%- include('../partials/footer') %>

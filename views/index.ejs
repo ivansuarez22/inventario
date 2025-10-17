@@ -1,0 +1,51 @@
+<%- include('partials/header') %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+      <h1 class="display-4 mb-4">Bienvenido al Sistema de Gestión de Productos</h1>
+      <p class="lead mb-5">Una aplicación completa para administrar su inventario de productos con CouchDB</p>
+      
+      <div class="row">
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <i class="fas fa-box-open fa-3x mb-3 text-primary"></i>
+              <h5 class="card-title">Gestión de Productos</h5>
+              <p class="card-text">Administre su inventario con operaciones CRUD completas</p>
+              <a href="/products" class="btn btn-primary">Ver Productos</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <i class="fas fa-file-pdf fa-3x mb-3 text-primary"></i>
+              <h5 class="card-title">Reportes PDF</h5>
+              <p class="card-text">Genere reportes detallados de su inventario</p>
+              <a href="/reports/inventory" class="btn btn-primary">Generar Reporte</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <i class="fas fa-user-plus fa-3x mb-3 text-primary"></i>
+              <h5 class="card-title">Gestión de Usuarios</h5>
+              <p class="card-text">Sistema completo de autenticación y recuperación</p>
+              <% if (!user) { %>
+                <a href="/login" class="btn btn-primary">Iniciar Sesión</a>
+              <% } else { %>
+                <a href="/logout" class="btn btn-outline-primary">Cerrar Sesión</a>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

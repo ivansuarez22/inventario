@@ -1,0 +1,15 @@
+# Dependencias
+node_modules/
+
+# Entorno y secretos
+.env
+
+# Archivos generados
+uploads/
+*.log
+npm-debug.log*
+yarn-error.log
+
+# OS
+.DS_Store
+Thumbs.db
