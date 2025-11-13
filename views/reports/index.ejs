@@ -1,0 +1,131 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+  <h2>Reportes</h2>
+  <p class="text-muted">Descarga reportes en formato PDF y hoja de cálculo (XLSX).</p>
+
+  <!-- Bloque: Reportes PDF -->
+  <h5 class="mt-3">Reportes PDF</h5>
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Inventario (PDF)</h5>
+          <p class="card-text">Reporte detallado del inventario con imágenes, precios y stock.</p>
+          <a href="/reports/inventory" class="btn btn-outline-primary mt-auto">Descargar PDF</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloque: Reportes XLSX -->
+  <h5 class="mt-3">Reportes XLSX</h5>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Valor total de ventas</h5>
+          <p class="card-text">Exporta todas las ventas y el total acumulado.</p>
+          <a href="/reports/sales-total.xlsx" class="btn btn-primary mt-auto">Descargar XLSX</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Total de productos en stock</h5>
+          <p class="card-text">Lista de productos con su stock y total de unidades.</p>
+          <a href="/reports/stock-total.xlsx" class="btn btn-primary mt-auto">Descargar XLSX</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Compras por cliente</h5>
+          <p class="card-text">Busca por nombre o ID del cliente y exporta sus compras.</p>
+          <form method="get" action="/reports/customer-total.xlsx" class="mt-auto">
+            <div class="input-group">
+              <input type="text" name="query" class="form-control" placeholder="Nombre o ID del cliente" required>
+              <!-- Botón único para generar reporte XLSX -->
+              <div class="mb-3 d-flex justify-content-end">
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#xlsxModal">
+                  <i class="fas fa-file-excel me-2"></i> Generar reporte XLSX
+                </button>
+              </div>
+              
+              <!-- Modal selección de reporte XLSX -->
+              <div class="modal fade" id="xlsxModal" tabindex="-1" aria-labelledby="xlsxModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="xlsxModalLabel">Generar reporte XLSX</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="xlsxType" id="xlsxVentas" value="ventas" checked>
+                        <label class="form-check-label" for="xlsxVentas">Valor total de ventas realizadas</label>
+                      </div>
+                      <div class="form-check mt-2">
+                        <input class="form-check-input" type="radio" name="xlsxType" id="xlsxStock" value="stock">
+                        <label class="form-check-label" for="xlsxStock">Total de productos en stock</label>
+                      </div>
+                      <div class="form-check mt-2">
+                        <input class="form-check-input" type="radio" name="xlsxType" id="xlsxCliente" value="cliente">
+                        <label class="form-check-label" for="xlsxCliente">Total de compras por un cliente</label>
+                      </div>
+                      <div class="mt-3">
+                        <label for="xlsxQuery" class="form-label">Nombre o ID del cliente</label>
+                        <input type="text" id="xlsxQuery" class="form-control" placeholder="Ej. Juan Pérez o 123456">
+                        <div class="form-text">Solo requerido si seleccionas "cliente".</div>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="button" class="btn btn-success" id="xlsxDownloadBtn">Descargar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <script>
+                (function(){
+                  const downloadBtn = document.getElementById('xlsxDownloadBtn');
+                  const queryInput = document.getElementById('xlsxQuery');
+                  downloadBtn && downloadBtn.addEventListener('click', function(){
+                    const selected = document.querySelector('input[name="xlsxType"]:checked').value;
+                    let url = '';
+                    if (selected === 'ventas') {
+                      url = '/reports/sales-total.xlsx';
+                    } else if (selected === 'stock') {
+                      url = '/reports/stock-total.xlsx';
+                    } else if (selected === 'cliente') {
+                      const q = (queryInput.value || '').trim();
+                      if (!q) {
+                        alert('Por favor ingresa el nombre o ID del cliente.');
+                        return;
+                      }
+                      const params = new URLSearchParams({ query: q });
+                      url = '/reports/customer-total.xlsx?' + params.toString();
+                    }
+                    // Ir a la ruta de descarga
+                    window.location.href = url;
+                  });
+                })();
+              </script>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="/" class="btn btn-outline-secondary">Volver al inicio</a>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

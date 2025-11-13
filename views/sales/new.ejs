@@ -1,0 +1,104 @@
+<%- include('../partials/header') %>
+
+<div class="row">
+  <div class="col-md-10">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Registrar Venta</h2>
+      <a href="/products" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Salir al menú de productos
+      </a>
+    </div>
+    <form id="saleForm" method="post" action="/sales">
+      <div class="mb-3">
+        <label class="form-label">Nombre del Cliente</label>
+        <input type="text" class="form-control" name="customerName" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">ID del Cliente</label>
+        <input type="text" class="form-control" name="customerId" required>
+      </div>
+
+      <h5>Selecciona productos</h5>
+      <div class="mb-2 text-muted">Marca los productos o ingresa cantidad y genera la factura.</div>
+      <div class="mb-3">
+        <div class="list-group">
+          <% products.forEach(p => { %>
+            <div class="list-group-item d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-3">
+                <% if (p.foto) { %>
+                  <img src="<%= p.foto %>" alt="<%= p.nombre %>" class="rounded" style="width:64px;height:64px;object-fit:cover;">
+                <% } else { %>
+                  <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width:64px;height:64px;">
+                    <i class="fas fa-image text-muted"></i>
+                  </div>
+                <% } %>
+                <div>
+                  <strong><%= p.nombre %></strong>
+                  <div class="text-muted small">Stock: <%= p.stock %> • Precio: $<%= p.precio %></div>
+                </div>
+              </div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="sel-<%= p._id %>" name="sel-<%= p._id %>" <%= (typeof selectedProductId !== 'undefined' && selectedProductId === p._id) ? 'checked' : '' %> >
+                  <label class="form-check-label" for="sel-<%= p._id %>">Seleccionar</label>
+                </div>
+                <input type="number" class="form-control" min="0" step="1" max="<%= p.stock %>" placeholder="Cantidad" id="qty-<%= p._id %>" name="qty-<%= p._id %>" style="width: 120px;" value="<%= (typeof selectedProductId !== 'undefined' && selectedProductId === p._id) ? 1 : '' %>">
+                <% if (typeof selectedProductId !== 'undefined' && selectedProductId === p._id) { %>
+                  <span class="badge bg-success">Preseleccionado</span>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <input type="hidden" name="items" id="itemsField">
+      <button type="submit" class="btn btn-primary">Generar Factura</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Sincronizar checkbox y cantidad: si pones cantidad, se marca; si la quitas, se desmarca
+  <% products.forEach(p => { %>
+    (function(){
+      const sel = document.getElementById('sel-<%= p._id %>');
+      const qty = document.getElementById('qty-<%= p._id %>');
+      sel && sel.addEventListener('change', function(){
+        const q = parseInt(qty.value, 10);
+        if (this.checked && (!q || q <= 0)) {
+          qty.value = 1;
+        }
+      });
+      qty && qty.addEventListener('input', function(){
+        const val = parseInt(this.value, 10);
+        if (val && val > 0) {
+          sel.checked = true;
+        } else {
+          sel.checked = false;
+        }
+      });
+    })();
+  <% }) %>
+
+  document.getElementById('saleForm').addEventListener('submit', function(e) {
+    const items = [];
+    <% products.forEach(p => { %>
+      const selected = !!document.getElementById('sel-<%= p._id %>').checked;
+      const qtyVal = document.getElementById('qty-<%= p._id %>').value;
+      const qty = parseInt(qtyVal, 10);
+      // Considerar seleccionado si hay checkbox marcado O si hay cantidad > 0
+      if ((selected || (qty && qty > 0)) && qty && qty > 0) {
+        items.push({ _id: '<%= p._id %>', quantity: qty });
+      }
+    <% }) %>
+    if (items.length === 0) {
+      e.preventDefault();
+      alert('Debes seleccionar al menos un producto con cantidad');
+      return;
+    }
+    document.getElementById('itemsField').value = JSON.stringify(items);
+  });
+</script>
+
+<%- include('../partials/footer') %>

@@ -11,14 +11,81 @@
     <a href="/products/add" class="btn btn-primary">
       <i class="fas fa-plus"></i> Registrar Producto
     </a>
+    <a href="/sales/new" class="btn btn-success">
+      <i class="fas fa-cash-register"></i> Registrar Venta
+    </a>
     <a href="/reports/inventory" class="btn btn-outline-danger">
       <i class="fas fa-file-pdf"></i> Generar Reporte PDF
     </a>
+    <!-- Botón único XLSX -->
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#xlsxModal">
+      <i class="fas fa-file-excel"></i> Generar reporte XLSX
+    </button>
     <a href="/logout" class="btn btn-outline-secondary">
       <i class="fas fa-sign-out-alt"></i> Salir
     </a>
   </div>
 </div>
+
+<!-- Modal selección de reporte XLSX -->
+<div class="modal fade" id="xlsxModal" tabindex="-1" aria-labelledby="xlsxModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="xlsxModalLabel">Generar reporte XLSX</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="xlsxType" id="xlsxVentas" value="ventas" checked>
+          <label class="form-check-label" for="xlsxVentas">Valor total de ventas realizadas</label>
+        </div>
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="radio" name="xlsxType" id="xlsxStock" value="stock">
+          <label class="form-check-label" for="xlsxStock">Total de productos en stock</label>
+        </div>
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="radio" name="xlsxType" id="xlsxCliente" value="cliente">
+          <label class="form-check-label" for="xlsxCliente">Total de compras por un cliente</label>
+        </div>
+        <div class="mt-3">
+          <label for="xlsxQuery" class="form-label">Nombre o ID del cliente</label>
+          <input type="text" id="xlsxQuery" class="form-control" placeholder="Ej. Juan Pérez o 123456">
+          <div class="form-text">Solo requerido si seleccionas "cliente".</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" id="xlsxDownloadBtn">Descargar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const downloadBtn = document.getElementById('xlsxDownloadBtn');
+    const queryInput = document.getElementById('xlsxQuery');
+    downloadBtn && downloadBtn.addEventListener('click', function(){
+      const selected = document.querySelector('input[name="xlsxType"]:checked').value;
+      let url = '';
+      if (selected === 'ventas') {
+        url = '/reports/sales-total.xlsx';
+      } else if (selected === 'stock') {
+        url = '/reports/stock-total.xlsx';
+      } else if (selected === 'cliente') {
+        const q = (queryInput.value || '').trim();
+        if (!q) {
+          alert('Por favor ingresa el nombre o ID del cliente.');
+          return;
+        }
+        const params = new URLSearchParams({ query: q });
+        url = '/reports/customer-total.xlsx?' + params.toString();
+      }
+      window.location.href = url;
+    });
+  })();
+</script>
 
 <% if (products.length === 0) { %>
   <div class="alert alert-info">
@@ -37,7 +104,7 @@
             </div>
           <% } %>
           <div class="card-body">
-            <h5 class="card-title"><%= product.nombre %></h5>
+
             <h6 class="card-subtitle mb-2 text-muted">ID: <%= product.id %></h6>
             <p class="card-text"><%= product.descripcion %></p>
             <div class="d-flex justify-content-between align-items-center">
@@ -50,9 +117,14 @@
               <a href="/products/edit/<%= product._id %>" class="btn btn-sm btn-outline-primary">
                 <i class="fas fa-edit"></i> Editar
               </a>
-              <a href="/products/delete/<%= product._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Estás seguro de eliminar este producto?')">
-                <i class="fas fa-trash"></i> Eliminar
-              </a>
+              <div class="d-flex gap-2">
+                <a href="/sales/new?product=<%= product._id %>" class="btn btn-sm btn-success">
+                  <i class="fas fa-shopping-cart"></i> Vender
+                </a>
+                <a href="/products/delete/<%= product._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Estás seguro de eliminar este producto?')">
+                  <i class="fas fa-trash"></i> Eliminar
+                </a>
+              </div>
             </div>
           </div>
         </div>

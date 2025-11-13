@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const http = require('http');
+const ExcelJS = require('exceljs');
+const Sale = require('../models/Sale');
 
 // Generar reporte de inventario en PDF
 exports.generateInventoryReport = async (req, res) => {
@@ -126,3 +128,97 @@ function downloadImage(url, destination) {
     });
   });
 }
+
+// Reporte XLSX: 1) Valor total de ventas realizadas
+exports.generateSalesTotalXlsx = async (req, res) => {
+  try {
+    const sales = await Sale.getAll();
+    const total = sales.reduce((sum, s) => sum + (s.total || 0), 0);
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Ventas');
+    ws.columns = [
+      { header: 'ID Venta', key: 'id', width: 20 },
+      { header: 'Cliente', key: 'cliente', width: 30 },
+      { header: 'Total', key: 'total', width: 15 }
+    ];
+    sales.forEach(s => ws.addRow({ id: s._id, cliente: s.customerName || s.customerId || '', total: s.total || 0 }));
+    ws.addRow({});
+    ws.addRow({ id: 'TOTAL', total });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=ventas_total.xlsx');
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Error al generar XLSX de ventas:', err);
+    req.flash('error_msg', 'Error al generar reporte de ventas');
+    res.redirect('/products');
+  }
+};
+
+// Reporte XLSX: 2) Total de productos en stock
+exports.generateStockTotalXlsx = async (req, res) => {
+  try {
+    const products = await Product.getAll();
+    const totalStock = products.reduce((sum, p) => sum + (parseInt(p.stock, 10) || 0), 0);
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Stock');
+    ws.columns = [
+      { header: 'ID', key: 'id', width: 15 },
+      { header: 'Nombre', key: 'nombre', width: 30 },
+      { header: 'Stock', key: 'stock', width: 10 }
+    ];
+    products.forEach(p => ws.addRow({ id: p.id, nombre: p.nombre, stock: p.stock }));
+    ws.addRow({});
+    ws.addRow({ id: 'TOTAL', stock: totalStock });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=stock_total.xlsx');
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Error al generar XLSX de stock:', err);
+    req.flash('error_msg', 'Error al generar reporte de stock');
+    res.redirect('/products');
+  }
+};
+
+// Reporte XLSX: 3) Total de compras por un solo cliente (buscar por nombre o ID)
+exports.generateCustomerTotalXlsx = async (req, res) => {
+  try {
+    const { query } = req.query; // puede ser nombre o ID
+    if (!query) {
+      req.flash('error_msg', 'Debe especificar nombre o ID de cliente');
+      return res.redirect('/products');
+    }
+    // Buscar por ID exacto o nombre exacto (simple)
+    const salesByCustomer = await Sale.getSalesByCustomer({ customerId: query, customerName: query });
+    const totalCustomer = salesByCustomer.reduce((sum, s) => sum + (s.total || 0), 0);
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('ComprasCliente');
+    ws.columns = [
+      { header: 'ID Venta', key: 'id', width: 20 },
+      { header: 'Cliente', key: 'cliente', width: 30 },
+      { header: 'Total', key: 'total', width: 15 }
+    ];
+    salesByCustomer.forEach(s => ws.addRow({ id: s._id, cliente: s.customerName || s.customerId || '', total: s.total || 0 }));
+    ws.addRow({});
+    ws.addRow({ id: 'TOTAL CLIENTE', total: totalCustomer });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=compras_${query}.xlsx`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Error al generar XLSX por cliente:', err);
+    req.flash('error_msg', 'Error al generar reporte por cliente');
+    res.redirect('/products');
+  }
+};
+
+exports.getReportsIndex = (req, res) => {
+  res.render('reports/index', { title: 'Reportes (XLSX)' });
+};

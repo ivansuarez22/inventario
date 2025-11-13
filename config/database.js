@@ -26,6 +26,7 @@ const couch = nano(couchUrl);
 const DB_NAME = process.env.COUCHDB_DB_NAME || 'proyect_2';
 const DB_USERS = `${DB_NAME}_users`;
 const DB_PRODUCTS = `${DB_NAME}_products`;
+const DB_SALES = `${DB_NAME}_sales`;
 
 // Inicializar bases de datos
 async function initDatabases() {
@@ -41,6 +42,11 @@ async function initDatabases() {
     if (!dbList.includes(DB_PRODUCTS)) {
       await couch.db.create(DB_PRODUCTS);
       console.log(`Base de datos ${DB_PRODUCTS} creada`);
+    }
+
+    if (!dbList.includes(DB_SALES)) {
+      await couch.db.create(DB_SALES);
+      console.log(`Base de datos ${DB_SALES} creada`);
     }
     
     // Crear vistas para productos
@@ -88,5 +94,6 @@ module.exports = {
   couch,
   usersDb: couch.use(DB_USERS),
   productsDb: couch.use(DB_PRODUCTS),
+  salesDb: couch.use(DB_SALES),
   initDatabases
 };

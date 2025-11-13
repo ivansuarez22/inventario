@@ -127,21 +127,28 @@ exports.postForgotPassword = async (req, res) => {
       return res.redirect('/forgot-password');
     }
     
-    // Usar el token específico proporcionado
-    const token = "3497a6df157afa5678a5672de97b49ac8321167d";
+    // Generar token seguro y fecha de expiración (24h)
+    const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date();
-    expires.setHours(expires.getHours() + 24); // Expira en 24 horas para dar más tiempo
+    expires.setHours(expires.getHours() + 24);
     
     // Guardar token en la base de datos
     await User.updateResetToken(user._id, token, expires.toISOString());
     
-    // Construir URL de reseteo dinámica para producción
+    // Construir URL dinámica
     const baseUrl = process.env.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
     const resetUrl = `${baseUrl}/reset-password/${token}`;
     
-    // Mostrar el enlace directamente en la página
-    req.flash('success_msg', `Utiliza este enlace para restablecer tu contraseña: <a href="${resetUrl}">${resetUrl}</a>`);
+    // Enviar correo con el enlace
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: 'Recuperación de contraseña',
+      text: `Hola ${user.name || ''}, usa este enlace para restablecer tu contraseña: ${resetUrl} (vigencia 24h).`,
+      html: `<p>Hola ${user.name || ''},</p><p>Para restablecer tu contraseña, haz clic en el siguiente enlace:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>El enlace vencerá en 24 horas.</p>`
+    });
     
+    req.flash('success_msg', 'Te enviamos un correo con el enlace de recuperación.');
     res.redirect('/login');
   } catch (error) {
     console.error('Error en recuperación de contraseña:', error);

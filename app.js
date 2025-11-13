@@ -13,6 +13,7 @@ const { initDatabases } = require('./config/database');
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const reportRoutes = require('./routes/reports');
+const salesRoutes = require('./routes/sales');
 
 // Inicializar la aplicación
 const app = express();
@@ -48,6 +49,7 @@ app.use((req, res, next) => {
 app.use('/', authRoutes);
 app.use('/products', productRoutes);
 app.use('/reports', reportRoutes);
+app.use('/sales', salesRoutes);
 
 // Ruta principal
 app.get('/', (req, res) => {
